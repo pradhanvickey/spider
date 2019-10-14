@@ -46,8 +46,8 @@ def crawl():
         print(str(len(queued_links)) + ' links in the queue')
         create_jobs()
 
+start_time = time()
 create_workers()
 crawl()
-print(start_time)
-print(end_time)
+end_time = time()
 print('Total time => ',str((end_time-start_time)*1000) +"ms")

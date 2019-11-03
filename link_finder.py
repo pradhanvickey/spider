@@ -16,7 +16,11 @@ class LinkFinder(HTMLParser):
             for (attribute, value) in attrs:
                 if attribute == 'href':
                     url = parse.urljoin(self.base_url, value)
-                    self.links.add(url)
+                    url_val = url.split('/')[-1]
+                    if url_val.endswith(('png','jpg','pdf')) or url_val.startswith(('email-protection#')):
+                        pass
+                    else:
+                        self.links.add(url)
 
     def page_links(self):
         return self.links

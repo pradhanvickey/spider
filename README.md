@@ -33,4 +33,4 @@ Tested on:
 
 Python version - 3.7
 
-elasticsearch version - 7.4.1
+Elasticsearch version - 7.4.1

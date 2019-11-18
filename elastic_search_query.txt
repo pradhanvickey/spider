@@ -1,0 +1,147 @@
+#creating index and mapping
+
+PUT /spider_main/
+{
+  "mappings": {
+      "properties": {
+        "title": {
+          "type": "text"
+        },
+        "meta_keywords": {
+          "type": "text"
+        },
+        "meta_description": {
+          "type": "text"
+        },
+        "page_url": {
+          "type": "text"
+        }
+      }
+    }
+}
+
+#for diplaying mapping
+
+GET /spider_main/_mapping
+
+# for searching data to be deleted
+
+GET /spider1234/_search
+{
+  "query": {
+    "bool" : {
+      "must" : {
+        "match_phrase" : { "title": "Ruby on Rails Development Company | RoR Web Development Services | W3villa"}
+      },
+      "should" : [
+        { "match_phrase": { "meta_keywords" : "Ruby on Rails, Product Design, Software Outsourcing, Technology Consulting, Product and Services, software development services, Lean startup, software development company, product development company"}},
+        { "match_phrase": { "meta_description" : "Ruby on Rails at W3villa Technologies is used in the right way. Team have a great experience on how to work on Ruby on Rails" } },
+        { "match_phrase": { "page_url" : "https://www.w3villa.com/blog/tags/ruby-on-rails" } }
+      ],
+      "minimum_should_match" : 1
+    }
+  }
+}
+
+
+GET /spider_main/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match_phrase": {
+            "title": "Ruby on Rails Development Company | RoR Web Development Services | W3villa"
+          }
+        },
+        {
+          "match_phrase": {
+            "page_url": "https://www.w3villa.com/web/ruby-on-rails-development-services"
+          }
+        }
+      ]
+    }
+  }
+}
+
+
+#Deleting Data by query
+
+POST /spider_main/_delete_by_query
+{
+  "query": {
+    "bool" : {
+      "must" : {
+        "match_phrase" : { "title": "Ruby on Rails Development Company | RoR Web Development Services | W3villa"}
+      },
+      "should" : [
+        { "term" : { "meta_keywords" : "Ruby on Rails, Product Design, Software Outsourcing, Technology Consulting, Product and Services, software development services, Lean startup, software development company, product development company"}},
+        { "term": { "meta_description" : "Ruby on Rails at W3villa Technologies is used in the right way. Team have a great experience on how to work on Ruby on Rails" } },
+        { "term" : { "page_url" : "https://www.w3villa.com/blog/tags/ruby-on-rails" } }
+      ],
+      "minimum_should_match" : 1
+    }
+  }
+}
+
+POST /spider_main/_delete_by_query
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match_phrase": {
+            "title": "Ruby on Rails Development Company | RoR Web Development Services | W3villa"
+          }
+        },
+        {
+          "match_phrase": {
+            "page_url": "https://www.w3villa.com/web/ruby-on-rails-development-services"
+          }
+        }
+      ]
+    }
+  }
+}
+
+#Updating data 
+
+POST /spidertest123/crawled_datas/Smr4L24B6VuUKTfCamSA/_update
+{
+  "script": {
+    "source": "ctx._source=params.val",
+    "lang": "painless",
+    "params": {
+      "val": {
+        "meta_keywords": "ruby",
+        "meta_description": "Ruby programming language"
+      }
+    }
+  }
+}
+
+#Fuzzy search
+
+GET /spidertest123/crawled_datas/_search
+{
+  "size" : 30,
+  "query" : {
+    "query_string" : {
+      "fields" : ["meta_keywords","meta_description","title"],
+      "query" : "ptyo~",
+      "default_operator" : "OR"
+    }
+  } 
+}
+
+GET /spider_main/_search
+{
+  "size" : 50,
+  "query" : {
+    "multi_match":{
+      "query" : "ruby on rails" ,
+      "fields" : ["meta_keywords","meta_description","title"],
+      "fuzziness": "AUTO"
+    }
+  }
+}

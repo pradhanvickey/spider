@@ -79,18 +79,19 @@ class Spider:
 
             response = requests.get(page_url,headers=headers)
 
-            if 'text/html' in response.headers['Content-Type']:
+            if  'text/html' in response.headers['Content-Type']:
                 soup = BeautifulSoup(response.text,'lxml')
                 title = soup.find('title').text
                 keyword = soup.find('meta',attrs={'name':'keywords'})['content']
                 description =soup.find('meta',attrs={'name':'description'})['content']
                 data = {'title' : title,'meta_keywords' : keyword, 'meta_description': description, 'page_url' : page_url}
-            print("Data fetched from {} : \n".format(thread_name),data)
-            finder = LinkFinder(Spider.base_url, page_url)
-            finder.feed(response.text)
-            Spider.send_data_to_es(thread_name,data)
-            del data
-
+                print("Data fetched from {} : \n".format(thread_name),data)
+                finder = LinkFinder(Spider.base_url, page_url)
+                finder.feed(response.text)
+                Spider.send_data_to_es(thread_name,data)
+                del data
+            else:
+                return set()
         except Exception as e:
             print(str(e))
             return set()
@@ -116,7 +117,14 @@ class Spider:
         print("Data dumping by {}".format(thread_name))
         try:
             es = Elasticsearch(['localhost:9200'])
-            res = es.index(index='spidertest123', doc_type='crawled_datas', body=data)
-            print(res)
+            if es.indices.exists('spider_main'):
+                result = es.search(index="spider_main", body={"query": {"bool" : {"must" : {"match_phrase" : { "title": data['title']}},"should" : [{"match_phrase": { "meta_keywords" : data['meta_keywords'] }},{ "match_phrase": { "meta_description" : data['meta_description'] } },{ "match_phrase": { "page_url" : data['page_url']} }],"minimum_should_match" : 1}}})
+                if int(result['hits']['total']['value']) > 0:
+                    print("Data already exists:")
+                    result = es.delete_by_query(index="spider_main", body={"query": {"bool" : {"must" : {"match_phrase" : { "title": data['title']}},"should" : [{"match_phrase": { "meta_keywords" : data['meta_keywords'] }},{ "match_phrase": { "meta_description" : data['meta_description'] } },{ "match_phrase": { "page_url" : data['page_url']} }],"minimum_should_match" : 1}}})
+                    print(result)
+
+            result = es.index(index='spider_main', body=data)
+            print(result)
         except Exception as e:
             raise e
